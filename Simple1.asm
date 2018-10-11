@@ -15,9 +15,15 @@ loop	movlw	0xFF		    ; delay timer value
 	movwf	0x20, ACCESS	    ; sets counter lower bit
 	movwf	0x21, ACCESS	    ; sets uppper bit
 	call	delay16
+	movwf	0x20, ACCESS	    ; sets counter lower bit
+	movwf	0x21, ACCESS	    ; sets uppper bit
+	call	delay16
+	movwf	0x20, ACCESS	    ; sets counter lower bit
+	movwf	0x21, ACCESS	    ; sets uppper bit
+	call	delay16
 	movff 	0x06, PORTC
 	incf 	0x06, F, ACCESS
-test	movlw 	0x63		    ; test for end of loop condition
+test	movlw 	0xFE		    ; test for end of loop condition
 	cpfsgt 	0x06, ACCESS
 	bra 	loop		    ; Not yet finished goto start of loop again
 	goto 	0x0		    ; Re-run program from start
