@@ -18,7 +18,19 @@ init	;setup port D (control bus)
 	bsf	PADCFG1, REPU, BANKED	; activate PORTE pull up resistors 
 	movlb	0x00		    ; set BSR back to 0
 	setf	TRISE		    ; Tri-state PORTE
-
+	;setup ouput ports F-G for visualizing  data
+	movlw	0x00
+	movwf	TRISF, ACCESS	    ; set PORTF to ouput
+	movwf	TRISG, ACCESS	    ; set PORTG to ouput
+main	;write a byte to reg 1
+	movlw	0xA7
+	movwf	0x20, ACCESS	    ; want to write 0xA7
+	bcf	0x10, 0, ACCESS	    ; set bit to 0, so write to 1st register
+	call	write		    ; write byte
+	call	read		    ; read from same register
+	movff	0x21, PORTF	    ; display contents of register in PORTF
+	GOTO	init		    ; loop back to start
+	
 	; writes data 0x20 to memory
 write   movlw	0x00
 	movwf	TRISE, ACCESS	    ; set PORTE to output
