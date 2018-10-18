@@ -9,34 +9,37 @@
 	; 0 is register 1 (CP1, OE1), 1 is register 2 (CP2, OE2)
 	
 start	;setup port D (control bus)
-	movlw	0x00
-	movwf	TRISD, ACCESS	    ; Set PORTD to output
-	movlw	0xFF
-	movwf	PORTD, ACCESS	    ; set control pins to HIGH
+	clrf	TRISD, ACCESS	    ; Set PORTD to output
+	setf	PORTD, ACCESS	    ; set control pins to HIGH
+	
 	;setup port E (data bus)
 	banksel	PADCFG1		    ; compiler finds correct bank
 	bsf	PADCFG1, REPU, BANKED	; activate PORTE pull up resistors 
 	movlb	0x00		    ; set BSR back to 0
 	setf	TRISE		    ; Tri-state PORTE
+	
 	;setup ouput ports F-G for visualizing  data
 	movlw	0x00
 	movwf	TRISH, ACCESS	    ; set PORTF to ouput
 	movwf	TRISJ, ACCESS	    ; set PORTG to ouput
-dostuff	;write a byte to reg 1 and read into port H
-	movlw	0xF9
-	movwf	0x20, ACCESS	    ; want to write 0xA7
+	
+main	;write a byte to reg 1 and read into port H
+	movlw	0xEE
+	movwf	0x20, ACCESS	    ; want to write 0xF9
 	bcf	0x10, 0, ACCESS	    ; set bit to 0, so write to 1st register
 	call	write		    ; write byte
 	call	read		    ; read from same register
 	movff	0x21, PORTH	    ; display contents of register in PORTF
+	
 	;write a byte to reg 2 and read into port J
-	movlw	0xE5
-	movwf	0x20, ACCESS	    ; want to write 0xA7
+	movlw	0xAA
+	movwf	0x20, ACCESS	    ; want to write 0xE5
 	bsf	0x10, 0, ACCESS	    ; set bit to 1, so write to 2nd register
 	call	write		    ; write byte
 	call	read		    ; read from same register
 	movff	0x21, PORTJ	    ; display contents of register in PORTJ
 	GOTO	start		    ; loop back to start
+	
 	
 	; writes data 0x20 to memory
 write   movlw	0x00
@@ -52,6 +55,7 @@ write   movlw	0x00
 	movwf	PORTD, ACCESS	    ; reset control bus to high
 	setf	TRISE		    ; Tri-state PORTE
 	return	0
+	
 	
 	; read data from memory into 0x21
 read	movlw	0xFF
