@@ -6,23 +6,31 @@
 	org 0x100		    ; Main code starts here at address 0x100
 	
 	
-start
+start	; send pattern through serial port
 	call    SPI_MasterInit  ; initialize SPI
-	movlw   0xF0
-	call    SPI_MasterTransmit ; send serial data
-	setf    0x22, ACCESS	; set timer upper byte
-	setf    0x21, ACCESS	; set timer high byte
-	setf    0x20, ACCESS	; set timer low byte
-	call    delay24		; delay
-	movlw   0x0F		
-	call    SPI_MasterTransmit	; send serial data
-	setf    0x22, ACCESS	
-	setf    0x21, ACCESS
-	setf    0x20, ACCESS
-	call    delay24		; delay
+	movlw	0x81		; load value 
+	call	send_delay	; send value
+	movlw	0x42		; as above
+	call	send_delay
+	movlw	0x24
+	call	send_delay
+	movlw	0x18
+	call	send_delay
+	movlw	0x24
+	call	send_delay
+	movlw	0x42
+	call	send_delay
+	movlw	0x81
 	goto    start
 	
-SPI_MasterInit	; Set Clock edge to positive
+send_delay
+	call	SPI_MasterTransmit  ; send W to serial
+	movlw	0x0F
+	movwf	0x22, ACCESS	    ; set timer delay
+	call	delay24		    ; delay
+	return
+	
+SPI_MasterInit	; Set Clock edge to positive (? set to negative ? )
 	bcf	    SSP2STAT, CKE
 	; MSSP enable; CKP=1; SPI master, clock=Fosc/64 (1MHz)
 	movlw   (1<<SSPEN)|(1<<CKP)|(0x02)
@@ -51,6 +59,8 @@ delay24	decfsz	0x20, F, ACCESS	    ; decrement reg 0x20, skip if zero
 	movwf	0x21, ACCESS
 	decfsz	0x22, F, ACCESS
 	bra	delay24
+	setf	0x20, ACCESS	    ; reset lower bytes
+	setf	0x21, ACCESS
 	return	0		    ; return
 	
     end
