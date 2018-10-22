@@ -16,7 +16,7 @@ loop_8	decfsz	delay_cnt_8, F	    ; decrement reg, skip if result is zero
 	
 delay16	movwf	delay_cnt_16
 	setf	delay_cnt_8
-loop_16 decfsz	delay_cnt_8, F	    ; decrement reg 0x20, skip if zero
+loop_16 decfsz	delay_cnt_8, F	    ; decrement register, skip if zero
 	bra	loop_16		    ; loop
 	setf	delay_cnt_8
 	decfsz	delay_cnt_16, F	    ; decrement upper byte
@@ -26,14 +26,14 @@ loop_16 decfsz	delay_cnt_8, F	    ; decrement reg 0x20, skip if zero
 delay24	movwf	delay_cnt_24
 	setf	delay_cnt_16
 	setf	delay_cnt_8
-loop_24	decfsz	delay_cnt_8, F	    ; decrement reg 0x20, skip if zero
+loop_24	decfsz	delay_cnt_8, F	    ; decrement reg register skip if zero
 	bra	loop_24		    ; loop
 	setf	delay_cnt_8
 	decfsz	delay_cnt_16, F	    ; decrement upper byte
 	bra	loop_24		    ; loop
 	setf	delay_cnt_8
 	setf	delay_cnt_16
-	decfsz	delay_cnt_24, F
+	decfsz	delay_cnt_24, F	    ; decrement high byte
 	bra	loop_24
 	return	0		    ; return
 	
