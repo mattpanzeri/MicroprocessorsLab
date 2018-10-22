@@ -9,7 +9,7 @@ delay_count res 1   ; reserve one byte for counter in the delay routine
 tables	udata	0x400    ; reserve data anywhere in RAM (here at 0x400)
 myArray res 0x80    ; reserve 128 bytes for message data
 
-rst	code	0    ; reset vector
+rst	code	0x0    ; reset vector
 	goto	setup
 
 pdata	code    ; a section of programme memory for storing data
