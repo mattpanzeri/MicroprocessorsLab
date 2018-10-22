@@ -2,10 +2,10 @@
 
 	extern	UART_Setup, UART_Transmit_Message  ; external UART subroutines
 	extern  LCD_Setup, LCD_Write_Message, LCD_Clear	 ; external LCD subroutines
+	extern	delay8, delay16, delay24	    ; external delay subroutines
 	
 acs0	udata_acs   ; reserve data space in access ram
 counter	    res 1   ; reserve one byte for a counter variable
-delay_count res 1   ; reserve one byte for counter in the delay routine
 
 tables	udata	0x400    ; reserve data anywhere in RAM (here at 0x400)
 myArray res 0x80    ; reserve 128 bytes for message data
@@ -49,12 +49,9 @@ loop 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 	lfsr	FSR2, myArray
 	call	UART_Transmit_Message
 	
+	movlw	0xFF
+	call	delay24
 	call	LCD_Clear
 	goto	$		; goto current line in code
-
-	; a delay subroutine if you need one, times around loop in delay_count
-delay	decfsz	delay_count	; decrement until zero
-	bra delay
-	return
 
 	end
