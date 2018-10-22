@@ -1,6 +1,6 @@
 #include p18f87k22.inc
 
-    global  LCD_Setup, LCD_Write_Message, LCD_Clear
+    global  LCD_Setup, LCD_Write_Message, LCD_Clear, LCD_DDRAM, LCD_Write_from_PM
     extern  delay24
 
 acs0    udata_acs   ; named variables in access ram
@@ -23,14 +23,6 @@ LCD_Setup
 	call	LCD_delay_ms	; wait 40ms for LCD to start up properly
 	movlw	b'00101000'	; Function set 4-bit
 	call	LCD_Send_Byte_I
-	movlw	.10		; wait 40us
-	call	LCD_delay_x4us
-	;movlw	b'00101000'	; 2 line display 5x8 dot characters
-	;call	LCD_Send_Byte_I
-	movlw	.10		; wait 40us
-	call	LCD_delay_x4us
-	;movlw	b'00101000'	; repeat, 2 line display 5x8 dot characters
-	;call	LCD_Send_Byte_I
 	movlw	.10		; wait 40us
 	call	LCD_delay_x4us
 	movlw	b'00001111'	; display on, cursor on, blinking on
@@ -121,6 +113,17 @@ LCD_DDRAM	    ; set DDRAM address (.00-.80)
 	bsf	LCD_tmp, 7	    ; set 7th bit to 1 to indicate instruction
 	movf	LCD_tmp, W	    
 	call	LCD_Send_Byte_I	    ; send instruction
+	movlw	.10
+	call	LCD_delay_x4us	    ; delay 40us
+	return
+	
+LCD_Write_from_PM ; send message from PM to LCD, must load PM address into TBLPTR* before calling
+	movwf	LCD_counter		    ; message length
+PM_loop tblrd*+			    ; one byte from PM to TABLAT, increment TBLPRT
+	movf	TABLAT, W	    ; move data from TABLAT to W
+	call	LCD_Send_Byte_D	    ; send byte
+	decfsz	LCD_counter		    ; count down to zero
+	bra	PM_loop		    ; keep going until finished
 	return
 	
 ; ** a few delay routines below here as LCD timing can be quite critical ****

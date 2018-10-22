@@ -1,7 +1,7 @@
 	#include p18f87k22.inc
 
 	extern	UART_Setup, UART_Transmit_Message  ; external UART subroutines
-	extern  LCD_Setup, LCD_Write_Message, LCD_Clear	 ; external LCD subroutines
+	extern  LCD_Setup, LCD_Write_Message, LCD_Clear, LCD_DDRAM, LCD_Write_from_PM	 ; external LCD subroutines
 	extern	delay8, delay16, delay24	    ; external delay subroutines
 	
 acs0	udata_acs   ; reserve data space in access ram
@@ -15,8 +15,8 @@ rst	code	0    ; reset vector
 
 pdata	code    ; a section of programme memory for storing data
 	; ******* myTable, data in programme memory, and its length *****
-myTable data	    "Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!Hello World!"	; message, plus carriage return
-	constant    myTable_l=.66	; length of data
+myTable data	    "Hello LCD!"	; message, plus carriage return
+	constant    myTable_l=.10	; length of data
 	
 main	code
 	; ******* Programme FLASH read Setup Code ***********************
@@ -41,7 +41,7 @@ loop 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 	decfsz	counter		; count down to zero
 	bra	loop		; keep going until finished
 		
-	movlw	myTable_l	; output message to LCD (leave out "\n")
+	movlw	myTable_l	; output message to LCD
 	lfsr	FSR2, myArray
 	call	LCD_Write_Message
 
@@ -52,6 +52,19 @@ loop 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 	movlw	0xFF
 	call	delay24
 	call	LCD_Clear
+	
+	movlw	.40
+	call	LCD_DDRAM	; set cursor to start of line 2
+	;write straight from Program Memory
+	movlw	upper(myTable)	; address of data in PM
+	movwf	TBLPTRU		; load upper bits to TBLPTRU
+	movlw	high(myTable)	; address of data in PM
+	movwf	TBLPTRH		; load high byte to TBLPTRH
+	movlw	low(myTable)	; address of data in PM
+	movwf	TBLPTRL		; load low byte to TBLPTRL
+	movlw	myTable_l	; bytes to read
+	call	LCD_Write_from_PM   ;write
+	
 	goto	$		; goto current line in code
 
 	end
