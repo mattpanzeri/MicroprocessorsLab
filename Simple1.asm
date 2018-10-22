@@ -27,47 +27,14 @@ setup	bcf	EECON1, CFGS	; point to Flash program memory
 	goto	start
 	
 	; ******* Main programme ****************************************
-start 	lfsr	FSR0, myArray	; Load FSR0 with address in RAM	
-	movlw	upper(myTable)	; address of data in PM
-	movwf	TBLPTRU		; load upper bits to TBLPTRU
-	movlw	high(myTable)	; address of data in PM
-	movwf	TBLPTRH		; load high byte to TBLPTRH
-	movlw	low(myTable)	; address of data in PM
-	movwf	TBLPTRL		; load low byte to TBLPTRL
-	movlw	myTable_l	; bytes to read
-	movwf 	counter		; our counter register
-loop 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
-	movff	TABLAT, POSTINC0; move data from TABLAT to (FSR0), inc FSR0	
-	decfsz	counter		; count down to zero
-	bra	loop		; keep going until finished
-		
-	movlw 0xFF		; setup port F as input
-	movwf TRISG
-	
-	movlw	myTable_l	; output message to LCD
-	lfsr	FSR2, myArray
-	call	LCD_Write_Message
+start 	
+	banksel	PADCFG1		    ; compiler finds correct bank
+	bsf	PADCFG1, REPU, BANKED	; activate PORTE pull up resistors 
+	movlb	0x00		    ; set BSR back to 0
+	clrf	LATE
 
-	;movlw	myTable_l	; output message to UART
-	;lfsr	FSR2, myArray
-	;call	UART_Transmit_Message
+	movlw 0xF0
+	movwf TRISE
 	
-	movlw	0xFF
-	call	delay24
-	call	LCD_Clear
-	
-	movlw	.40
-	call	LCD_DDRAM	; set cursor to start of line 2
-	;write straight from Program Memory
-	movlw	upper(myTable)	; address of data in PM
-	movwf	TBLPTRU		; load upper bits to TBLPTRU
-	movlw	high(myTable)	; address of data in PM
-	movwf	TBLPTRH		; load high byte to TBLPTRH
-	movlw	low(myTable)	; address of data in PM
-	movwf	TBLPTRL		; load low byte to TBLPTRL
-	movlw	myTable_l	; bytes to read
-	call	LCD_Write_from_PM   ;write
-	
-	goto	$		; goto current line in code
-
+	goto start
 	end
