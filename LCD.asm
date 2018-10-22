@@ -1,6 +1,6 @@
 #include p18f87k22.inc
 
-    global  LCD_Setup, LCD_Write_Message
+    global  LCD_Setup, LCD_Write_Message, LCD_Clear
 
 acs0    udata_acs   ; named variables in access ram
 LCD_cnt_l   res 1   ; reserve 1 byte for variable LCD_cnt_l
@@ -106,6 +106,10 @@ LCD_Enable	    ; pulse enable bit LCD_E for 500ns
 	bcf	    LATB, LCD_E	    ; Writes data to LCD
 	return
     
+LCD_Clear	    ; clear LCD screen
+	movlw	0x01		    ; 0x01 clears
+	call	LCD_Send_Byte_I	    ; send instruction
+	return
 ; ** a few delay routines below here as LCD timing can be quite critical ****
 LCD_delay_ms		    ; delay given in ms in W
 	movwf	LCD_cnt_ms
