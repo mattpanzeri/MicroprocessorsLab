@@ -44,7 +44,8 @@ LCD_Write_Message	    ; Message stored at FSR2, length stored in W
 LCD_Loop_message
 	movf    POSTINC2, W
 	call    LCD_Send_Byte_D
-	movlw	0x0F
+	movlw	0x1A
+	btfss	PORTG, 0, 0	; checks if RF0 is high, if it is skips the delay
 	call	delay24
 	decfsz  LCD_counter
 	bra	LCD_Loop_message
