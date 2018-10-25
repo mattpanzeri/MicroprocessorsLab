@@ -1,6 +1,6 @@
 #include p18f87k22.inc
 
-    global  LCD_Setup, LCD_Write_Message, LCD_Clear, LCD_DDRAM, LCD_Write_from_PM
+    global  LCD_Setup, LCD_Write_Message, LCD_Clear, LCD_DDRAM, LCD_Write_from_PM, LCD_Send_Byte_D
     extern  delay24
 
 acs0    udata_acs   ; named variables in access ram
