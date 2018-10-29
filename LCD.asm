@@ -1,7 +1,7 @@
 #include p18f87k22.inc
 
 
-    global  LCD_Setup, LCD_Write_Message, LCD_Write_Hex
+    global  LCD_Setup, LCD_Write_Message, LCD_Write_Hex, LCD_Hex_Nib
     global  LCD_Clear, LCD_DDRAM, LCD_Write_from_PM, LCD_Send_Byte_D
     extern  delay24
 

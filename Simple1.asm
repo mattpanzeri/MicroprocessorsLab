@@ -3,7 +3,7 @@
 	extern	UART_Setup, UART_Transmit_Message   ; external UART subroutines
 	extern  LCD_Setup, LCD_Write_Message	    ; external LCD subroutines
 	extern	LCD_Write_Hex			    ; external LCD subroutines
-	extern  ADC_Setup, ADC_Read		    ; external ADC routines
+	extern  ADC_Setup, ADC_Read, ADC_Convert    ; external ADC routines
 	extern	UART_Setup, UART_Transmit_Message  ; external UART subroutines
 	extern  LCD_Setup, LCD_Write_Message, LCD_Clear, LCD_DDRAM, LCD_Write_from_PM, LCD_Send_Byte_D	 ; external LCD subroutines
 	extern	delay8, delay16, delay24	    ; external delay subroutines
@@ -56,51 +56,10 @@ wloop	incf	counter, F, ACCESS	    ; increment counter
 	
 	
 	; ******* Main programme ****************************************	
-start 	movlw	0x0A
-	movwf	m8x24_m, ACCESS
-	lfsr	FSR1, m8x24_in
-	movlw	0x34
-	movwf	POSTINC1, ACCESS
-	movlw	0xEB
-	movwf	POSTINC1, ACCESS
-	movlw	0x3B
-	movwf	POSTINC1, ACCESS
+start 	call	ADC_Read
+	call	ADC_Convert
 	
-	call	m8x24
-	movf	POSTDEC2, W, ACCESS
-	call	LCD_Write_Hex
-	movf	POSTDEC2, W, ACCESS
-	call	LCD_Write_Hex
-	movf	POSTDEC2, W, ACCESS
-	call	LCD_Write_Hex
-	movf	POSTDEC2, W, ACCESS
-	call	LCD_Write_Hex
-	
-	movlw	0xFF
-	call	delay24
-	call	LCD_Clear
-	
-	
-	call	m16x16
-	movlw	0x04
-	movwf	m16x16_xh, ACCESS
-	movlw	0xD2
-	movwf	m16x16_xl, ACCESS
-	movlw	0x41
-	movwf	m16x16_yh, ACCESS
-	movlw	0x8A
-	movwf	m16x16_yl, ACCESS
-	
-	movf	POSTDEC2, W, ACCESS
-	call	LCD_Write_Hex
-	movf	POSTDEC2, W, ACCESS
-	call	LCD_Write_Hex
-	movf	POSTDEC2, W, ACCESS
-	call	LCD_Write_Hex
-	movf	POSTDEC2, W, ACCESS
-	call	LCD_Write_Hex
-	
-	movlw	0xFF
+	movlw	0x30
 	call	delay24
 	call	LCD_Clear
 	
