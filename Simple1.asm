@@ -7,6 +7,8 @@
 	extern	UART_Setup, UART_Transmit_Message  ; external UART subroutines
 	extern  LCD_Setup, LCD_Write_Message, LCD_Clear, LCD_DDRAM, LCD_Write_from_PM, LCD_Send_Byte_D	 ; external LCD subroutines
 	extern	delay8, delay16, delay24	    ; external delay subroutines
+	extern  m8x24, m8x24_in, m8x24_out, m8x24_m ;external multiplication 8x24
+	extern	m16x16, m16x16_xh, m16x16_xl, m16x16_yh, m16x16_yl
 	
 acs0	udata_acs   ; reserve data space in access ram
 counter	    res 1   ; reserve one byte for a counter variable
@@ -54,35 +56,55 @@ wloop	incf	counter, F, ACCESS	    ; increment counter
 	
 	
 	; ******* Main programme ****************************************	
-start 	
-rloop
-	movlw	0xF0
-	movwf	TRISE
-	movlw	0x01
-	call	delay16
-	movff	PORTE, nibble_high    ;read row data
-	movlw	0x0F
-	movwf	TRISE
-	movlw	0x01
-	call	delay16
-	movff	PORTE, nibble_low     ;read column data
+start 	movlw	0x0A
+	movwf	m8x24_m, ACCESS
+	lfsr	FSR1, m8x24_in
+	movlw	0x34
+	movwf	POSTINC1, ACCESS
+	movlw	0xEB
+	movwf	POSTINC1, ACCESS
+	movlw	0x3B
+	movwf	POSTINC1, ACCESS
 	
-	movf	nibble_high, W		; move high nibble into W
-	iorwf	nibble_low, W		; combine nibbles
+	call	m8x24
+	movf	POSTDEC2, W, ACCESS
+	call	LCD_Write_Hex
+	movf	POSTDEC2, W, ACCESS
+	call	LCD_Write_Hex
+	movf	POSTDEC2, W, ACCESS
+	call	LCD_Write_Hex
+	movf	POSTDEC2, W, ACCESS
+	call	LCD_Write_Hex
 	
-	
-	lfsr	FSR0, 0x300		;set fsr midway through
-	movwf	FSR0L			;set address to W
-	movf	INDF0, W		;read lookup		
-	setf	temp
-	cpfseq	temp
-	call	LCD_Send_Byte_D
-	movlw	0x0F
+	movlw	0xFF
 	call	delay24
-	bra rloop
+	call	LCD_Clear
 	
 	
-	goto start
+	call	m16x16
+	movlw	0x04
+	movwf	m16x16_xh, ACCESS
+	movlw	0xD2
+	movwf	m16x16_xl, ACCESS
+	movlw	0x41
+	movwf	m16x16_yh, ACCESS
+	movlw	0x8A
+	movwf	m16x16_yl, ACCESS
+	
+	movf	POSTDEC2, W, ACCESS
+	call	LCD_Write_Hex
+	movf	POSTDEC2, W, ACCESS
+	call	LCD_Write_Hex
+	movf	POSTDEC2, W, ACCESS
+	call	LCD_Write_Hex
+	movf	POSTDEC2, W, ACCESS
+	call	LCD_Write_Hex
+	
+	movlw	0xFF
+	call	delay24
+	call	LCD_Clear
+	
+	goto	start
 	
 	
 create_lookup
