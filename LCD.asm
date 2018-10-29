@@ -1,6 +1,10 @@
 #include p18f87k22.inc
 
+
     global  LCD_Setup, LCD_Write_Message, LCD_Write_Hex
+    global  LCD_Setup, LCD_Write_Message, LCD_Clear, LCD_DDRAM, LCD_Write_from_PM, LCD_Send_Byte_D
+    extern  delay24
+
 
 acs0    udata_acs   ; named variables in access ram
 LCD_cnt_l   res 1   ; reserve 1 byte for variable LCD_cnt_l
@@ -11,6 +15,7 @@ LCD_counter res 1   ; reserve 1 byte for counting through nessage
 
 acs_ovr	access_ovr
 LCD_hex_tmp res 1   ; reserve 1 byte for variable LCD_hex_tmp	
+LCD_counter res 1   ; reserve 1 byte for counting through message
 
 	constant    LCD_E=5	; LCD enable bit
     	constant    LCD_RS=4	; LCD register select bit
@@ -23,15 +28,7 @@ LCD_Setup
 	movwf	TRISB
 	movlw   .40
 	call	LCD_delay_ms	; wait 40ms for LCD to start up properly
-	movlw	b'00110000'	; Function set 4-bit
-	call	LCD_Send_Nib
-	movlw	.10		; wait 40us
-	call	LCD_delay_x4us
-	movlw	b'00101000'	; 2 line display 5x8 dot characters
-	call	LCD_Send_Byte_I
-	movlw	.10		; wait 40us
-	call	LCD_delay_x4us
-	movlw	b'00101000'	; repeat, 2 line display 5x8 dot characters
+	movlw	b'00101000'	; Function set 4-bit
 	call	LCD_Send_Byte_I
 	movlw	.10		; wait 40us
 	call	LCD_delay_x4us
@@ -70,6 +67,9 @@ LCD_Write_Message	    ; Message stored at FSR2, length stored in W
 LCD_Loop_message
 	movf    POSTINC2, W
 	call    LCD_Send_Byte_D
+	movlw	0x1A
+	btfss	PORTG, 0, 0	; checks if RF0 is high, if it is skips the delay
+	call	delay24
 	decfsz  LCD_counter
 	bra	LCD_Loop_message
 	return
@@ -81,8 +81,8 @@ LCD_Send_Byte_I		    ; Transmits byte stored in W to instruction reg
 	movwf   LATB	    ; output data bits to LCD
 	bcf	LATB, LCD_RS	; Instruction write clear RS bit
 	call    LCD_Enable  ; Pulse enable Bit 
-LCD_Send_Nib
 	movf	LCD_tmp,W   ; swap nibbles, now do low nibble
+LCD_Send_Nib
 	andlw   0x0f	    ; select just low nibble
 	movwf   LATB	    ; output data bits to LCD
 	bcf	LATB, LCD_RS    ; Instruction write clear RS bit
@@ -125,6 +125,31 @@ LCD_Enable	    ; pulse enable bit LCD_E for 500ns
 	bcf	    LATB, LCD_E	    ; Writes data to LCD
 	return
     
+LCD_Clear	    ; clear LCD screen
+	movlw	0x01		    ; 0x01 clears
+	call	LCD_Send_Byte_I	    ; send instruction
+	movlw	0x02		    ; delay 2ms
+	call	LCD_delay_ms
+	return
+	
+LCD_DDRAM	    ; set DDRAM address (.00-.80)
+	movwf	LCD_tmp
+	bsf	LCD_tmp, 7	    ; set 7th bit to 1 to indicate instruction
+	movf	LCD_tmp, W	    
+	call	LCD_Send_Byte_I	    ; send instruction
+	movlw	.10
+	call	LCD_delay_x4us	    ; delay 40us
+	return
+	
+LCD_Write_from_PM ; send message from PM to LCD, must load PM address into TBLPTR* before calling
+	movwf	LCD_counter		    ; message length
+PM_loop tblrd*+			    ; one byte from PM to TABLAT, increment TBLPRT
+	movf	TABLAT, W	    ; move data from TABLAT to W
+	call	LCD_Send_Byte_D	    ; send byte
+	decfsz	LCD_counter		    ; count down to zero
+	bra	PM_loop		    ; keep going until finished
+	return
+	
 ; ** a few delay routines below here as LCD timing can be quite critical ****
 LCD_delay_ms		    ; delay given in ms in W
 	movwf	LCD_cnt_ms
@@ -151,7 +176,6 @@ lcdlp1	decf 	LCD_cnt_l,F	; no carry when 0x00 -> 0xff
 	subwfb 	LCD_cnt_h,F	; no carry when 0x00 -> 0xff
 	bc 	lcdlp1		; carry, then loop again
 	return			; carry reset so return
-
 
     end
 
